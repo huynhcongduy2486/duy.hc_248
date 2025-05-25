@@ -1,0 +1,85 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <ctime>
+#include <cstdlib>
+using namespace std;
+
+class Employee {
+protected:
+    string firstName, lastName;
+public:
+    Employee(string f, string l) : firstName(f), lastName(l) {}
+    virtual double earnings() const = 0;
+    virtual void print() const {
+        cout << firstName << " " << lastName;
+    }
+    virtual ~Employee() {}
+};
+class SEmployee : public Employee {
+    double salary;
+public:
+    SEmployee(string f, string l, double s) : Employee(f, l), salary(s) {}
+    double earnings() const override { return salary; }
+    void print() const override {
+        Employee::print();
+        cout << " | Salaried: " << salary << endl;
+    }
+};
+class CEmployee : public Employee {
+    double sales, rate;
+public:
+    CEmployee(string f, string l, double s, double r) : Employee(f, l), sales(s), rate(r) {}
+    double earnings() const override { return sales * rate; }
+    void print() const override {
+        Employee::print();
+        cout << " | Commission: sales = " << sales << ", rate = " << rate << endl;
+    }
+};
+class SCEmployee : public CEmployee {
+    double baseSalary;
+public:
+    SCEmployee(string f, string l, double s, double r, double base) :
+        CEmployee(f, l, s, r), baseSalary(base) {}
+    double earnings() const override {
+        return baseSalary + CEmployee::earnings();
+    }
+    void print() const override {
+        Employee::print();
+        cout << " | Base + Commission: base = " << baseSalary << ", earnings = " << earnings() << endl;
+    }
+};
+string randStr() {
+    string s = "";
+    s += 'A' + rand() % 26;
+    s += 'a' + rand() % 26;
+    return s;
+}
+int main() {
+    srand(time(0));
+    vector<Employee*> list;
+
+    for (int i = 0; i < 10; i++)
+        list.push_back(new SEmployee(randStr(), randStr(), 1000 + rand() % 1000));
+
+    for (int i = 0; i < 10; i++)
+        list.push_back(new CEmployee(randStr(), randStr(), 5000 + rand() % 5000, 0.05 + (rand() % 10) / 100.0));
+
+    for (int i = 0; i < 10; i++)
+        list.push_back(new SCEmployee(randStr(), randStr(), 5000 + rand() % 5000, 0.05 + (rand() % 10) / 100.0, 500 + rand() % 500));
+
+    cout << "=== Danh sach ban dau ===\n";
+    for (auto e : list)
+        e->print();
+
+    sort(list.begin(), list.end(), [](Employee* a, Employee* b) {
+        return a->earnings() > b->earnings();
+    });
+    cout << "\n==Danh sach sau sap xep theo earnings==\n";
+    for (auto e : list)
+        e->print();
+    for (auto e : list)
+        delete e;
+
+    return 0;
+} 
